@@ -1,0 +1,64 @@
+# Version of docker-compose
+version: '3.1'
+
+services:
+  elixir_json_schema_phoenix:
+    build:
+      context: .
+    labels:
+        com.datadoghq.ad.logs: '[{"source": "phoenix", "service": "phoenix-webapp"}]'
+    environment:
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: elixir_json_schema_dev
+      PGPORT: 5432
+      PGHOST: db
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+      - datadog
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500k"
+        max-file: "50"
+    networks:
+      - local              
+  db:
+    labels:
+        com.datadoghq.ad.logs: '[{"source": "postgres", "service": "backend-postgres"}]'    
+    image: postgres:9.6
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data/pgdata
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - local       
+  datadog:
+    image: datadog/agent:latest
+    environment:
+      DD_API_KEY: "f69554b19e1c98fad520dea32e2323e7" 
+      DD_SITE: "datadoghq.com"
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+      DD_CONTAINER_EXCLUDE: "name:dd-agent"
+      DD_APM_ENABLED: "true"
+      DD_APM_NON_LOCAL_TRAFFIC: "true"
+    env_file:
+      - datadog.env
+    volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - /proc/:/host/proc/:ro
+     - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+    ports:
+      - "8125-8126:8125-8126"
+    networks:
+      - local         
+volumes:
+  pgdata:
+networks:
+  local:
