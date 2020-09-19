@@ -2,7 +2,7 @@
 
 * Install docker 
 * Execute docker-compose up
-* To get the salaries invoke the endpoint using cURL:
+* To create a user invoke the endpoint using cURL:
 
 ```
 curl --location --request POST 'http://localhost:4000/api/users' \
